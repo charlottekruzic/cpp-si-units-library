@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <ratio>
 
+#include <iostream> //enlever
+
 namespace phy
 {
 
@@ -46,14 +48,26 @@ namespace phy
 
 		intmax_t value;
 
-		Qty();
-		Qty(intmax_t v);
+		Qty() : value(0)
+		{
+		}
+
+		Qty(intmax_t v) : value(v)
+		{
+		}
 
 		template <typename ROther>
-		Qty &operator+=(Qty<U, ROther> other);
+		Qty &operator+=(Qty<U, ROther> other){
+			//using product = std::ratio_multiply<Ratio, ROther>;
+			value = (value*Ratio::num/Ratio::den)+(other.value*ROther::num/ROther::den);
+			return *this;
+		}
 
 		template <typename ROther>
-		Qty &operator-=(Qty<U, ROther> other);
+		Qty &operator-=(Qty<U, ROther> other){
+			value = (value*Ratio::num/Ratio::den)-(other.value*ROther::num/ROther::den);
+			return *this;
+		}
 	};
 
 	/*
@@ -72,48 +86,101 @@ namespace phy
 	 * Some weird quantities
 	 */
 
-	using Mile = /* implementation defined */;
-	using Yard = /* implementation defined */;
-	using Foot = /* implementation defined */;
-	using Inch = /* implementation defined */;
+	using Mile = Qty<Metre, std::ratio<1609304, 1000>>;
+	using Yard = Qty<Metre, std::ratio<10000, 9144>>;
+	using Foot = Qty<Metre, std::ratio<10000, 3048>>;
+	using Inch = Qty<Metre, std::ratio<10000, 254>>;
 
 	/*
 	 * Comparison operators
 	 */
 
 	template <typename U, typename R1, typename R2>
-	bool operator==(Qty<U, R1> q1, Qty<U, R2> q2);
+	bool operator==(Qty<U, R1> q1, Qty<U, R2> q2)
+	{
+		if(q1.value*R1::num/R1::den == q2.value*R2::num/R2::den){
+			return true;
+		}
+		return false;
+	}
 
 	template <typename U, typename R1, typename R2>
-	bool operator!=(Qty<U, R1> q1, Qty<U, R2> q2);
+	bool operator!=(Qty<U, R1> q1, Qty<U, R2> q2){
+		if(q1.value*R1::num/R1::den == q2.value*R2::num/R2::den){
+			return false;
+		}
+		return true;
+	}
 
 	template <typename U, typename R1, typename R2>
-	bool operator<(Qty<U, R1> q1, Qty<U, R2> q2);
+	bool operator<(Qty<U, R1> q1, Qty<U, R2> q2){
+		if(q1.value*R1::num/R1::den < q2.value*R2::num/R2::den){
+			return true;
+		}
+		return false;
+	}
 
 	template <typename U, typename R1, typename R2>
-	bool operator<=(Qty<U, R1> q1, Qty<U, R2> q2);
+	bool operator<=(Qty<U, R1> q1, Qty<U, R2> q2){
+		if(q1.value*R1::num/R1::den <= q2.value*R2::num/R2::den){
+			return true;
+		}
+		return false;
+	}
 
 	template <typename U, typename R1, typename R2>
-	bool operator>(Qty<U, R1> q1, Qty<U, R2> q2);
+	bool operator>(Qty<U, R1> q1, Qty<U, R2> q2){
+		if(q1.value*R1::num/R1::den > q2.value*R2::num/R2::den){
+			return true;
+		}
+		return false;
+	}
 
 	template <typename U, typename R1, typename R2>
-	bool operator>=(Qty<U, R1> q1, Qty<U, R2> q2);
+	bool operator>=(Qty<U, R1> q1, Qty<U, R2> q2){
+		if(q1.value*R1::num/R1::den >= q2.value*R2::num/R2::den){
+			return true;
+		}
+		return false;
+	}
 
 	/*
 	 * Arithmetic operators
 	 */
 
-	template <typename U, typename R1, typename R2>
-	/* implementation defined */ operator+(Qty<U, R1> q1, Qty<U, R2> q2);
+	/*template <typename U, typename R1, typename R2>
+	Qty<U, struct> operator+(Qty<U, R1> q1, Qty<U, R2> q2){  <- struct doit etre définit en fonction d'un boolean ?
+		intmax_t valueQty = (q1.value*R1::num/R1::den)+(q2.value*R2::num/R2::den);
+		Qty<U, R1> newQty(valueQty);
+		return newQty;
+	}*/
+	
+	template <typename N1, typename D1, typename N2, typename D2, bool l>
+	struct chooseRatio{
+		Ratio = R1;
+	}
+
+	template <typename N1, typename D1, typename N2, typename D2, true>
+	struct chooseRatio{
+		Ratio = R2;
+	}
+
 
 	template <typename U, typename R1, typename R2>
-	/* implementation defined */ operator-(Qty<U, R1> q1, Qty<U, R2> q2);
+	Qty<U, chooseRatio<> > operator+(Qty<U, R1> q1, Qty<U, R2> q2){
+		intmax_t valueQty = (q1.value*R1::num/R1::den)+(q2.value*R2::num/R2::den);
+		Qty<U, R1> newQty(valueQty);
+		return newQty;
+	}
+
+	/*template <typename U, typename R1, typename R2>
+		implementation defined  operator-(Qty<U, R1> q1, Qty<U, R2> q2);
 
 	template <typename U1, typename R1, typename U2, typename R2>
-	/* implementation defined */ operator*(Qty<U1, R1> q1, Qty<U2, R2> q2);
+		implementation defined operator*(Qty<U1, R1> q1, Qty<U2, R2> q2);
 
 	template <typename U1, typename R1, typename U2, typename R2>
-	/* implementation defined */ operator/(Qty<U1, R1> q1, Qty<U2, R2> q2);
+		implementation defined operator/(Qty<U1, R1> q1, Qty<U2, R2> q2);*/
 
 	/*
 	 * Cast function between two quantities
@@ -149,8 +216,7 @@ namespace phy
 	{
 		/**
 		 * additional types
-		*/
-	
+		 */
 
 	}
 

@@ -603,13 +603,6 @@ TEST(arithmeticOperatorsAdd, Default){
 	ASSERT_TRUE((std::is_same_v<decltype(sum)::Ratio, std::milli>));
 }
 
-
-
-
-
-
-
-
 TEST(arithmeticOperatorsSub, Default){
 	Qty<Metre> m(2);
 	Qty<Metre, std::milli> mm(1000);
@@ -664,49 +657,6 @@ TEST(differentsUnits, Default)
  * 
 */
 
-
-TEST(arithmeticOperatorsAdd, Default){
-	Qty<Metre> m(2);
-	Qty<Metre, std::milli> mm(2000);
-
-	auto sum = m + mm;
-
-	ASSERT_EQ(sum.value, 4000);
-	ASSERT_TRUE((std::is_same_v<decltype(sum)::Ratio, std::milli>));
-}
-
-TEST(arithmeticOperatorsSub, Default){
-	Qty<Metre> m(2);
-	Qty<Metre, std::milli> mm(1000);
-
-	auto sub = m - mm;
-
-	ASSERT_EQ(sub.value, 1000);
-	ASSERT_TRUE((std::is_same_v<decltype(sub)::Ratio, std::milli>));
-}
-
-TEST(arithmeticOperatorsProduct, Default){
-	Qty<Metre> m(2);
-	Qty<Metre, std::milli> mm(2000);
-
-	auto product = mm * m;
-
-	ASSERT_EQ(product.value, 4000000);
-	ASSERT_TRUE((std::is_same_v<decltype(product)::Ratio, std::milli>));
-	ASSERT_TRUE((std::is_same_v<decltype(product)::Unit , Unit<2, 0, 0, 0, 0, 0, 0>>));
-}
-
-TEST(arithmeticOperatorsQuotient, Default){
-	Qty<Metre> m(4);
-	Qty<Metre, std::milli> mm(2000);
-
-	auto quotient = m / mm;
-
-	
-	ASSERT_EQ(quotient.value, 2);
-	ASSERT_TRUE((std::is_same_v<decltype(quotient)::Ratio, std::milli>));
-	ASSERT_TRUE((std::is_same_v<decltype(quotient)::Unit , Radian>));
-}
 
 TEST(castQuantity, Default){
 	using Kilometre = Qty<Metre, std::kilo>;

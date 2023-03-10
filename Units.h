@@ -5,6 +5,7 @@
 #include <ratio>
 
 #include <iostream> //enlever
+#include <math.h>
 
 namespace phy
 {
@@ -246,7 +247,6 @@ namespace phy
 	{
 		using new_ratio = typename chooseRatio_t<R1, R2>::type;
 		using new_unit = quotient_unit<U1, U2>;
-		//intmax_t new_value = (q1.value * new_ratio::den / R1::den) / (q2.value * new_ratio::den / R2::den);
 		intmax_t new_value = 0;
 		if(std::ratio_equal<new_ratio,R1>::value){
 			new_value = q1.value / (q2.value * std::ratio_divide<R2, R1>::num / std::ratio_divide<R2, R1>::den);
@@ -256,15 +256,33 @@ namespace phy
 		return Qty<new_unit, new_ratio>(new_value);
 	}
 
+	template <typename U>
+	int unit_traits(){
+		int a = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
+		return a;
+	}
+
 	/*
 	 * Cast function between two quantities
 	 */
 	template <typename ResQty, typename U, typename R>
-	ResQty qtyCast(Qty<U, R> q)
+	ResQty qtyCast(Qty<U, R> other)
 	{
 		using new_ratio = typename ResQty::Ratio;
-		using old_ratio = typename U::Ratio;
-		intmax_t value_in_new_units = static_cast<intmax_t>(q.value * old_ratio::num * new_ratio::den / (new_ratio::num * old_ratio::den));
+		using new_unit = typename ResQty::Unit;
+
+		using old_ratio = R;
+		using old_unit = U;
+
+		using ratio_diff = std::ratio_divide<new_ratio, old_ratio>;
+
+		int unit_exposant = unit_traits<U>();
+		intmax_t value_in_new_units = 0;
+		if((std::ratio_less_v<new_ratio,old_ratio>) || (std::ratio_equal<new_ratio,old_ratio>::value)){
+			value_in_new_units = static_cast<intmax_t>(other.value * std::pow((old_ratio::num * new_ratio::den / (new_ratio::num * old_ratio::den)), unit_exposant));
+		}else{
+			value_in_new_units = static_cast<double>(other.value) * old_ratio::num * new_ratio::den / std::pow((new_ratio::num * old_ratio::den), unit_exposant);
+		}
 		return ResQty(value_in_new_units);
 	}
 

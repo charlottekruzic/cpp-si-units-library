@@ -726,7 +726,9 @@ TEST(arithmeticOperatorsQuotient, DifferentRatioFirstBiggestSameUnit){
 	ASSERT_TRUE((std::is_same_v<decltype(quotient)::Unit , Radian>));
 }
 
-/*TEST(arithmeticOperatorsQuotient, DifferentRatioSecondBiggestSameUnit){
+
+
+TEST(arithmeticOperatorsQuotient, DifferentRatioSecondBiggestSameUnit){
 	Qty<Metre> m(2);
 	Qty<Metre, std::milli> mm(200);
 	auto quotient = mm / m;
@@ -742,7 +744,122 @@ TEST(arithmeticOperatorsQuotient, DifferentRatioSecondBiggest_2SameUnit){
 	ASSERT_EQ(quotient.value, 0.001);//garder la bonne valeur, changer le ratio ??
 	ASSERT_TRUE((std::is_same_v<decltype(quotient)::Ratio, std::milli>));
 	ASSERT_TRUE((std::is_same_v<decltype(quotient)::Unit , Radian>));
-}*/
+}
+
+TEST(arithmeticOperatorsQuotient, DifferentUnits){
+	Qty<Metre, std::kilo> km(2);
+	Qty<Second> s(2000);
+	auto product = km / s;
+	ASSERT_EQ(product.value, 1);
+	ASSERT_TRUE((std::is_same_v<decltype(product)::Ratio, std::ratio<1>>)); // 1m/s
+	ASSERT_TRUE((std::is_same_v<decltype(product)::Unit , Unit<1, 0, -1, 0, 0, 0, 0>>));
+}
+
+TEST(QtyTest, DivisionWithRatio) {
+	phy::Qty<phy::Metre, std::milli> length(2);
+	phy::Qty<phy::Second, std::centi> time(500);
+
+	auto result = length/time;
+	ASSERT_EQ(result.value, 0);
+	
+	ASSERT_TRUE((std::is_same_v<decltype(result)::Ratio, std::milli>));
+	ASSERT_TRUE((std::is_same_v<decltype(result)::Unit , Unit<1, 0, -1, 0, 0, 0, 0>>));
+
+}
+
+//Cast tests
+TEST(castQuantity, KilometerToMeter){
+	using Kilometre = Qty<Metre, std::kilo>;
+	Kilometre km(4);
+	
+	auto m = qtyCast<Qty<Metre, std::ratio<1>>>(km);
+
+	ASSERT_EQ(m.value, 4000);
+	ASSERT_TRUE((std::is_same_v<decltype(m)::Ratio, std::ratio<1>>));
+	ASSERT_TRUE((std::is_same_v<decltype(m)::Unit , Metre>));
+}
+
+TEST(castQuantity, SquareKilometerToSquareMeter){
+	using squareMeter = Unit<2, 0, 0, 0, 0, 0, 0>;
+	using squareKilometer = Qty<squareMeter, std::kilo>;
+
+	squareKilometer km2(4);
+	Qty<squareMeter> m2 = qtyCast<Qty<squareMeter, std::ratio<1>>>(km2);
+
+
+	ASSERT_EQ(m2.value, 4000000);
+	ASSERT_TRUE((std::is_same_v<decltype(m2)::Ratio, std::ratio<1>>));
+	ASSERT_TRUE((std::is_same_v<decltype(m2)::Unit , squareMeter>));
+}
+
+TEST(castQuantity, SquareMeterToSquareKilometer){
+    using squareMeter = Unit<2, 0, 0, 0, 0, 0, 0>;
+    using squareKilometer = Qty<Unit<2, 0, 0, 0, 0, 0, 0>, std::kilo>;
+
+    Qty<squareMeter> m2(4000000);
+	auto km2 = qtyCast<squareKilometer>(m2);
+
+    ASSERT_EQ(km2.value, 4);
+    ASSERT_TRUE((std::is_same_v<decltype(km2)::Ratio, std::kilo>));
+    ASSERT_TRUE((std::is_same_v<decltype(km2)::Unit , squareKilometer::Unit>));
+}
+
+TEST(castQuantity, SquareKilometerToSquareCentimeter){
+    using squareMeter = Unit<2, 0, 0, 0, 0, 0, 0>;
+    using squareKilometer = Qty<squareMeter, std::kilo>;
+	using squareCentimeter = Qty<squareMeter, std::centi>;
+
+    squareKilometer km2(3);
+	auto cm2 = qtyCast<squareCentimeter>(km2);
+
+    ASSERT_EQ(cm2.value, 30000000000);
+    ASSERT_TRUE((std::is_same_v<decltype(cm2)::Ratio, std::centi>));
+    ASSERT_TRUE((std::is_same_v<decltype(cm2)::Unit , squareCentimeter::Unit>));
+}
+
+TEST(castQuantity, CubeKilometerToCubeCentimeter){
+    using squareMeter = Unit<3, 0, 0, 0, 0, 0, 0>;
+    using squareKilometer = Qty<squareMeter, std::kilo>;
+	using squareCentimeter = Qty<squareMeter, std::centi>;
+
+    squareKilometer km3(3);
+	auto cm3 = qtyCast<squareCentimeter>(km3);
+
+    ASSERT_EQ(cm3.value, 3000000000000000);
+    ASSERT_TRUE((std::is_same_v<decltype(cm3)::Ratio, std::centi>));
+    ASSERT_TRUE((std::is_same_v<decltype(cm3)::Unit , squareCentimeter::Unit>));
+}
+
+TEST(castQuantity, CubeCentimeterToCubeKilometer){
+    using squareMeter = Unit<3, 0, 0, 0, 0, 0, 0>;
+    using squareKilometer = Qty<squareMeter, std::kilo>;
+	using squareCentimeter = Qty<squareMeter, std::centi>;
+
+    squareCentimeter cm3(3000000000000000);
+	auto km3 = qtyCast<squareKilometer>(cm3);
+
+    ASSERT_EQ(km3.value, 3);
+    ASSERT_TRUE((std::is_same_v<decltype(km3)::Ratio, std::kilo>));
+    ASSERT_TRUE((std::is_same_v<decltype(km3)::Unit , squareKilometer::Unit>));
+}
+
+TEST(castQuantity, meterSecondToKilometerSecond){
+    using meterSecond = Qty<Unit<1, 0, -1, 0, 0, 0, 0>, std::ratio<1>>;
+	using kilometerSecond = Qty<Unit<1, 0, -1, 0, 0, 0, 0>, std::kilo>;
+
+
+    meterSecond ms(3000);
+	auto kms = qtyCast<kilometerSecond>(ms);
+
+    ASSERT_EQ(kms.value, 3);
+    ASSERT_TRUE((std::is_same_v<decltype(kms)::Ratio, std::kilo>));
+    ASSERT_TRUE((std::is_same_v<decltype(kms)::Unit , kilometerSecond::Unit>));
+}
+
+
+
+
+
 
 
 
@@ -759,22 +876,15 @@ TEST(differentsUnits, Default)
 
 //tests miles / foot ....
 //km/h + m/s
+//test _meter, _fahrenheitt...
+//trouver solution division
+// revoir cast m/s...
 /**
  * 
 */
 
 
-TEST(castQuantity, Default){
-	using Kilometre = Qty<Metre, std::kilo>;
-	Qty<Kilometre> km(4);
 
-	Qty<Metre> m = qtyCast<Qty<Metre>>(km);
-
-	
-	ASSERT_EQ(m.value, 4000);
-	ASSERT_TRUE((std::is_same_v<decltype(m)::Ratio, std::ratio<1>>));
-	ASSERT_TRUE((std::is_same_v<decltype(m)::Unit , Metre>));
-}
 
 TEST(literals, Default) {
     using namespace literals;

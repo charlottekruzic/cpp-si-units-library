@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <ratio>
 
-#include <iostream> //enlever
 #include <math.h>
 
 namespace phy
@@ -60,14 +59,16 @@ namespace phy
 		template <typename ROther>
 		Qty &operator+=(Qty<U, ROther> other)
 		{
-    		value += other.value * std::ratio_divide<ROther, Ratio>::num / std::ratio_divide<ROther, Ratio>::den;
+			using new_ratio = std::ratio_divide<ROther, Ratio>;
+			value += other.value * new_ratio::num / new_ratio::den;
 			return *this;
 		}
 
 		template <typename ROther>
 		Qty &operator-=(Qty<U, ROther> other)
 		{
-			value -= other.value * std::ratio_divide<ROther, Ratio>::num / std::ratio_divide<ROther, Ratio>::den;
+			using new_ratio = std::ratio_divide<ROther, Ratio>;
+			value -= other.value * new_ratio::num / new_ratio::den;
 			return *this;
 		}
 	};
@@ -162,7 +163,7 @@ namespace phy
 	 */
 
 	/**
-	 * choix ratio
+	 * Permet de renvoyer le ratio le plus faible
 	 */
 	template <typename R1, typename R2, bool l>
 	struct chooseRatio
@@ -177,36 +178,40 @@ namespace phy
 	};
 
 	template <typename R1, typename R2>
-	using chooseRatio_t = typename chooseRatio<R1, R2, std::ratio_less_v<R1,R2>>::type;
-
-	/*template <typename R1, typename R2>
-	struct chooseRatio<R1, R2, false>
-	{
-		using type = R1;
-	};*/
+	using chooseRatio_t = typename chooseRatio<R1, R2, std::ratio_less_v<R1, R2>>::type;
 
 	template <typename U, typename R1, typename R2>
 	Qty<U, chooseRatio_t<R1, R2>> operator+(Qty<U, R1> q1, Qty<U, R2> q2)
 	{
-		using new_ratio = typename chooseRatio_t<R1, R2>::type; // même dénominateur si on fait ca
+		using new_ratio = typename chooseRatio_t<R1, R2>::type;
 		intmax_t new_value = 0;
-		if(std::ratio_equal<new_ratio,R1>::value){
-			new_value = q1.value + q2.value * std::ratio_divide<R2, R1>::num / std::ratio_divide<R2, R1>::den;
-		}else{
-			new_value = q1.value * std::ratio_divide<R1, R2>::num / std::ratio_divide<R1, R2>::den + q2.value;
+		if (std::ratio_equal<new_ratio, R1>::value)
+		{
+			using r = std::ratio_divide<R2, R1>;
+			new_value = q1.value + q2.value * r::num / r::den;
+		}
+		else
+		{
+			using r = std::ratio_divide<R1, R2>;
+			new_value = q1.value * r::num / r::den + q2.value;
 		}
 		return Qty<U, new_ratio>(new_value);
 	}
 
-	template <typename U, typename R1, typename R2>//ratio_less
+	template <typename U, typename R1, typename R2>
 	Qty<U, chooseRatio_t<R1, R2>> operator-(Qty<U, R1> q1, Qty<U, R2> q2)
 	{
-		using new_ratio = typename chooseRatio_t<R1, R2>::type; // même dénominateur si on fait ca
+		using new_ratio = typename chooseRatio_t<R1, R2>::type;
 		intmax_t new_value = 0;
-		if(std::ratio_equal<new_ratio,R1>::value){
-			new_value = q1.value - q2.value * std::ratio_divide<R2, R1>::num / std::ratio_divide<R2, R1>::den;
-		}else{
-			new_value = q1.value * std::ratio_divide<R1, R2>::num / std::ratio_divide<R1, R2>::den - q2.value;
+		if (std::ratio_equal<new_ratio, R1>::value)
+		{
+			using r = std::ratio_divide<R2, R1>;
+			new_value = q1.value - q2.value * r::num / r::den;
+		}
+		else
+		{
+			using r = std::ratio_divide<R1, R2>;
+			new_value = q1.value * r::num / r::den - q2.value;
 		}
 		return Qty<U, new_ratio>(new_value);
 	}
@@ -226,10 +231,15 @@ namespace phy
 		using new_unit = product_unit<U1, U2>;
 
 		intmax_t new_value = 0;
-		if(std::ratio_equal<new_ratio,R1>::value){
-			new_value = q1.value * (q2.value * std::ratio_divide<R2, R1>::num / std::ratio_divide<R2, R1>::den);
-		}else{
-			new_value = (q1.value * std::ratio_divide<R1, R2>::num / std::ratio_divide<R1, R2>::den) * q2.value;
+		if (std::ratio_equal<new_ratio, R1>::value)
+		{
+			using r = std::ratio_divide<R2, R1>;
+			new_value = q1.value * (q2.value * r::num / r::den);
+		}
+		else
+		{
+			using r = std::ratio_divide<R1, R2>;
+			new_value = (q1.value * r::num / r::den) * q2.value;
 		}
 		return Qty<new_unit, new_ratio>(new_value);
 	}
@@ -247,19 +257,18 @@ namespace phy
 	{
 		using new_ratio = typename chooseRatio_t<R1, R2>::type;
 		using new_unit = quotient_unit<U1, U2>;
-		intmax_t new_value = 0;
-		if(std::ratio_equal<new_ratio,R1>::value){
-			new_value = q1.value / (q2.value * std::ratio_divide<R2, R1>::num / std::ratio_divide<R2, R1>::den);
-		}else{
-			new_value = (q1.value * std::ratio_divide<R1, R2>::num / std::ratio_divide<R1, R2>::den) / q2.value;
+		double new_value = 0;
+		if (std::ratio_equal<new_ratio, R1>::value)
+		{
+			using r = std::ratio_divide<R2, R1>;
+			new_value = q1.value / (q2.value * r::num / r::den);
+		}
+		else
+		{
+			using r = std::ratio_divide<R1, R2>;
+			new_value = (q1.value * r::num / r::den) / q2.value;
 		}
 		return Qty<new_unit, new_ratio>(new_value);
-	}
-
-	template <typename U>
-	int unit_traits(){
-		int a = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
-		return a;
 	}
 
 	/*
@@ -269,21 +278,18 @@ namespace phy
 	ResQty qtyCast(Qty<U, R> other)
 	{
 		using new_ratio = typename ResQty::Ratio;
-		using new_unit = typename ResQty::Unit;
 
-		using old_ratio = R;
-		using old_unit = U;
-
-		using ratio_diff = std::ratio_divide<new_ratio, old_ratio>;
-
-		int unit_exposant = unit_traits<U>();
-		intmax_t value_in_new_units = 0;
-		if((std::ratio_less_v<new_ratio,old_ratio>) || (std::ratio_equal<new_ratio,old_ratio>::value)){
-			value_in_new_units = static_cast<intmax_t>(other.value * std::pow((old_ratio::num * new_ratio::den / (new_ratio::num * old_ratio::den)), unit_exposant));
-		}else{
-			value_in_new_units = static_cast<double>(other.value) * old_ratio::num * new_ratio::den / std::pow((new_ratio::num * old_ratio::den), unit_exposant);
+		int exposant = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
+		intmax_t new_value = 0;
+		if ((std::ratio_less_v<new_ratio, R>) || (std::ratio_equal<new_ratio, R>::value))
+		{
+			new_value = other.value * std::pow((R::num * new_ratio::den / (new_ratio::num * R::den)), exposant);
 		}
-		return ResQty(value_in_new_units);
+		else
+		{
+			new_value = other.value * R::num * new_ratio::den / std::pow((new_ratio::num * R::den), exposant);
+		}
+		return ResQty(new_value);
 	}
 
 	namespace literals
@@ -333,21 +339,13 @@ namespace phy
 
 		Temperature operator"" _celsius(unsigned long long int val)
 		{
-			return Temperature(val - 273.15);
+			return Temperature(val + 273.15);
 		}
 
 		Temperature operator"" _fahrenheit(unsigned long long int val)
 		{
-			return Temperature(val * 9.0 / 5.0 - 459.67); //retourne une valeur en kelvin
+			return Temperature((5.0 / 9.0) * (val + 459.67)); // retourne une valeur en kelvin
 		}
-	}
-
-	namespace details
-	{
-		/**
-		 * additional types
-		 */
-
 	}
 
 }

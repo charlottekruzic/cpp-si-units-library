@@ -89,19 +89,42 @@ namespace phy
 	 * Some weird quantities
 	 */
 
-	using Mile = Qty<Metre, std::ratio<1609304, 1000>>;
-	using Yard = Qty<Metre, std::ratio<10000, 9144>>;
-	using Foot = Qty<Metre, std::ratio<10000, 3048>>;
-	using Inch = Qty<Metre, std::ratio<10000, 254>>;
+	using Mile = Qty<Metre, std::ratio<1000, 1609304>>;
+	using Yard = Qty<Metre, std::ratio<9144, 10000>>;
+	using Foot = Qty<Metre, std::ratio<3048, 10000>>;
+	using Inch = Qty<Metre, std::ratio<254, 10000>>;
 
 	/*
 	 * Comparison operators
 	 */
 
+	/**
+	 * Returns the number of powers of 10 that separate 2 ratios
+	 */
+	template <typename R1, typename R2>
+	int ratios_difference()
+	{
+		if (std::ratio_less_v<R1, R2>)
+		{
+			return std::log10(R2::num * R1::den / R1::num / R2::den);
+		}
+		return std::log10(R1::num * R2::den / R2::num / R1::den);
+	}
+
 	template <typename U, typename R1, typename R2>
 	bool operator==(Qty<U, R1> q1, Qty<U, R2> q2)
 	{
-		if (q1.value * R1::num / R1::den == q2.value * R2::num / R2::den)
+		int exposant_1 = ratios_difference<R1, R2>();
+		int exposant_2 = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
+		if (std::ratio_equal_v<R1, R2> && (q1.value * R1::num / R1::den == q2.value * R2::num / R2::den))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R2, R1> && (q1.value * std::pow(10, exposant_1 * exposant_2) == q2.value))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R1, R2> && (q1.value == q2.value * std::pow(10, exposant_1 * exposant_2)))
 		{
 			return true;
 		}
@@ -111,17 +134,39 @@ namespace phy
 	template <typename U, typename R1, typename R2>
 	bool operator!=(Qty<U, R1> q1, Qty<U, R2> q2)
 	{
-		if (q1.value * R1::num / R1::den == q2.value * R2::num / R2::den)
+		int exposant_1 = ratios_difference<R1, R2>();
+		int exposant_2 = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
+
+		if (std::ratio_equal_v<R1, R2> && (q1.value * R1::num / R1::den != q2.value * R2::num / R2::den))
 		{
-			return false;
+			return true;
 		}
-		return true;
+		else if (std::ratio_less_v<R2, R1> && (q1.value * std::pow(10, exposant_1 * exposant_2) != q2.value))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R1, R2> && (q1.value != q2.value * std::pow(10, exposant_1 * exposant_2)))
+		{
+			return true;
+		}
+		return false;
 	}
 
 	template <typename U, typename R1, typename R2>
 	bool operator<(Qty<U, R1> q1, Qty<U, R2> q2)
 	{
-		if (q1.value * R1::num / R1::den < q2.value * R2::num / R2::den)
+		int exposant_1 = ratios_difference<R1, R2>();
+		int exposant_2 = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
+
+		if (std::ratio_equal_v<R1, R2> && (q1.value * R1::num / R1::den < q2.value * R2::num / R2::den))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R2, R1> && (q1.value * std::pow(10, exposant_1 * exposant_2) < q2.value))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R1, R2> && (q1.value < q2.value * std::pow(10, exposant_1 * exposant_2)))
 		{
 			return true;
 		}
@@ -131,7 +176,18 @@ namespace phy
 	template <typename U, typename R1, typename R2>
 	bool operator<=(Qty<U, R1> q1, Qty<U, R2> q2)
 	{
-		if (q1.value * R1::num / R1::den <= q2.value * R2::num / R2::den)
+		int exposant_1 = ratios_difference<R1, R2>();
+		int exposant_2 = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
+
+		if (std::ratio_equal_v<R1, R2> && (q1.value * R1::num / R1::den <= q2.value * R2::num / R2::den))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R2, R1> && (q1.value * std::pow(10, exposant_1 * exposant_2) <= q2.value))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R1, R2> && (q1.value <= q2.value * std::pow(10, exposant_1 * exposant_2)))
 		{
 			return true;
 		}
@@ -141,7 +197,18 @@ namespace phy
 	template <typename U, typename R1, typename R2>
 	bool operator>(Qty<U, R1> q1, Qty<U, R2> q2)
 	{
-		if (q1.value * R1::num / R1::den > q2.value * R2::num / R2::den)
+		int exposant_1 = ratios_difference<R1, R2>();
+		int exposant_2 = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
+
+		if (std::ratio_equal_v<R1, R2> && (q1.value * R1::num / R1::den > q2.value * R2::num / R2::den))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R2, R1> && (q1.value * std::pow(10, exposant_1 * exposant_2) > q2.value))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R1, R2> && (q1.value > q2.value * std::pow(10, exposant_1 * exposant_2)))
 		{
 			return true;
 		}
@@ -151,19 +218,26 @@ namespace phy
 	template <typename U, typename R1, typename R2>
 	bool operator>=(Qty<U, R1> q1, Qty<U, R2> q2)
 	{
-		if (q1.value * R1::num / R1::den >= q2.value * R2::num / R2::den)
+		int exposant_1 = ratios_difference<R1, R2>();
+		int exposant_2 = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
+
+		if (std::ratio_equal_v<R1, R2> && (q1.value * R1::num / R1::den >= q2.value * R2::num / R2::den))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R2, R1> && (q1.value * std::pow(10, exposant_1 * exposant_2) >= q2.value))
+		{
+			return true;
+		}
+		else if (std::ratio_less_v<R1, R2> && (q1.value >= q2.value * std::pow(10, exposant_1 * exposant_2)))
 		{
 			return true;
 		}
 		return false;
 	}
 
-	/*
-	 * Arithmetic operators
-	 */
-
 	/**
-	 * Permet de renvoyer le ratio le plus faible
+	 * Returns the lowest ratio
 	 */
 	template <typename R1, typename R2, bool l>
 	struct chooseRatio
@@ -179,6 +253,10 @@ namespace phy
 
 	template <typename R1, typename R2>
 	using chooseRatio_t = typename chooseRatio<R1, R2, std::ratio_less_v<R1, R2>>::type;
+
+	/*
+	 * Arithmetic operators
+	 */
 
 	template <typename U, typename R1, typename R2>
 	Qty<U, chooseRatio_t<R1, R2>> operator+(Qty<U, R1> q1, Qty<U, R2> q2)
@@ -217,12 +295,13 @@ namespace phy
 	}
 
 	/**
-	 * produit Unit
+	 * Calculate the product of unity
 	 */
 	template <typename U1, typename U2>
 	using product_unit = Unit<U1::metre + U2::metre, U1::kilogram + U2::kilogram,
 							  U1::second + U2::second, U1::ampere + U2::ampere,
 							  U1::kelvin + U2::kelvin, U1::mole + U2::mole, U1::candela + U2::candela>;
+
 
 	template <typename U1, typename R1, typename U2, typename R2>
 	Qty<product_unit<U1, U2>, chooseRatio_t<R1, R2>> operator*(Qty<U1, R1> q1, Qty<U2, R2> q2)
@@ -245,12 +324,13 @@ namespace phy
 	}
 
 	/**
-	 * quotient Unit
+	 * Calculate the quotient of unity
 	 */
 	template <typename U1, typename U2>
 	using quotient_unit = Unit<U1::metre - U2::metre, U1::kilogram - U2::kilogram,
 							   U1::second - U2::second, U1::ampere - U2::ampere,
 							   U1::kelvin - U2::kelvin, U1::mole - U2::mole, U1::candela - U2::candela>;
+
 
 	template <typename U1, typename R1, typename U2, typename R2>
 	Qty<quotient_unit<U1, U2>, chooseRatio_t<R1, R2>> operator/(Qty<U1, R1> q1, Qty<U2, R2> q2)
@@ -274,21 +354,23 @@ namespace phy
 	/*
 	 * Cast function between two quantities
 	 */
+
 	template <typename ResQty, typename U, typename R>
 	ResQty qtyCast(Qty<U, R> other)
 	{
 		using new_ratio = typename ResQty::Ratio;
 
-		int exposant = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
+		int exposant_1 = ratios_difference<R, new_ratio>();
+		int exposant_2 = U::metre + U::kilogram + U::second + U::ampere + U::kelvin + U::mole + U::candela;
+
+		int exposant_tot = exposant_1 * exposant_2;
+		if (std::ratio_less_v<R, new_ratio>)
+		{
+			exposant_tot = -exposant_tot;
+		}
+
 		intmax_t new_value = 0;
-		if ((std::ratio_less_v<new_ratio, R>) || (std::ratio_equal<new_ratio, R>::value))
-		{
-			new_value = other.value * std::pow((R::num * new_ratio::den / (new_ratio::num * R::den)), exposant);
-		}
-		else
-		{
-			new_value = other.value * R::num * new_ratio::den / std::pow((new_ratio::num * R::den), exposant);
-		}
+		new_value = other.value * std::pow(10, exposant_tot);
 		return ResQty(new_value);
 	}
 
@@ -344,7 +426,7 @@ namespace phy
 
 		Temperature operator"" _fahrenheit(unsigned long long int val)
 		{
-			return Temperature((5.0 / 9.0) * (val + 459.67)); // retourne une valeur en kelvin
+			return Temperature((5.0 / 9.0) * (val + 459.67));
 		}
 	}
 

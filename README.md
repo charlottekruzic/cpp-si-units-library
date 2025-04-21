@@ -1,7 +1,7 @@
 # Units - Library for unit conversion and management
 [![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT)
 
-Units is a C++ library designed to handle unit conversions and management. It provides functionalities for converting between various units of measurement, ensuring that the conversions are done with accuracy and efficiency.
+Units is a lightweight C++ library designed to handle unit conversions and management. It provides functionalities for converting between various units of measurement, ensuring that the conversions are done with accuracy and efficiency.
 
 ## Features
 - Conversion between multiple units of measurement

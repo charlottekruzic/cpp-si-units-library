@@ -13,7 +13,6 @@ Units is a C++ library designed to handle unit conversions and management. It pr
 - C++17 compatible compiler
 - CMake 3.10 or higher
 - GoogleTest (included)
-- Standard C++ library (no additional dependencies)
 
 ## Build Instructions
 1. Clone the repository

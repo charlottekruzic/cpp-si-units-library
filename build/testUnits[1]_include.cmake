@@ -1,5 +1,0 @@
-if(EXISTS "/home/charlotte/Bureau/TP PMP/tp2/units/build/testUnits[1]_tests.cmake")
-  include("/home/charlotte/Bureau/TP PMP/tp2/units/build/testUnits[1]_tests.cmake")
-else()
-  add_test(testUnits_NOT_BUILT testUnits_NOT_BUILT)
-endif()

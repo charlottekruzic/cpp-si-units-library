@@ -44,4 +44,4 @@ When all tests pass, you should see output similar to:
 
 
 ## Project assignment
-For more information about the purpose of this project, you can find the [complete project assignment file](./project-assignment-fr.pdf) (in french) within this repository. This project is part of the third-year Bachelor's degree in Computer Science at the University of Franche-Comté.
+For more information about the purpose of this project, you can find the [complete project assignment file](./ressources/project-assignment-fr.pdf) (in french) within this repository. This project is part of the third-year Bachelor's degree in Computer Science at the University of Franche-Comté.
